@@ -848,7 +848,20 @@
       <!-- Order Summary -->
       <div class="order-summary">
         <h3 class="chinese-font">订单摘要 Order Summary</h3>
-        
+  
+        <!-- Order Items List (NEW!) -->
+        <div id="orderItemsList" style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 2px solid #fecaca;">
+          <h4 style="font-size: 16px; color: #991b1b; margin-bottom: 12px; font-weight: 700;" class="chinese-font">
+            订购商品 Order Items
+          </h4>
+          <div id="itemsContainer" style="color: #666; font-size: 14px;">
+            <p style="text-align: center; color: #999; font-style: italic;" class="chinese-font">
+              请选择商品<br>
+              Please select products
+            </p>
+          </div>
+        </div>
+  
         <div class="summary-table">
           <div class="summary-row">
             <span class="summary-label chinese-font">小计 Subtotal:</span>
@@ -908,25 +921,87 @@
     // Calculate total function
     function calculateTotal() {
       let subtotal = 0;
-      
+      const selectedItems = []; // Track selected items
+  
       // Calculate subtotal from all quantity inputs
       quantityInputs.forEach(input => {
         const quantity = parseInt(input.value) || 0;
         const price = parseFloat(input.dataset.price);
+    
+        if (quantity > 0) {
+          // Add to selected items list
+          selectedItems.push({
+            name: input.dataset.product,
+            size: input.dataset.size,
+            price: price,
+            quantity: quantity,
+            total: price * quantity
+          });
+        }
+    
         subtotal += quantity * price;
       });
-      
+  
       // Get delivery method
       const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
       const deliveryFee = deliveryMethod === 'delivery' ? 5 : 0;
-      
+  
       // Calculate total
       const total = subtotal + deliveryFee;
-      
+  
       // Update display
       subtotalElement.textContent = `RM ${subtotal.toFixed(2)}`;
       deliveryFeeElement.textContent = `RM ${deliveryFee.toFixed(2)}`;
       totalElement.textContent = `RM ${total.toFixed(2)}`;
+  
+      // Update items list display
+      updateItemsList(selectedItems);
+    }
+
+    // NEW FUNCTION: Update the items list display
+    function updateItemsList(items) {
+      const itemsContainer = document.getElementById('itemsContainer');
+  
+      if (items.length === 0) {
+        // No items selected - show placeholder
+        itemsContainer.innerHTML = `
+          <p style="text-align: center; color: #999; font-style: italic;" class="chinese-font">
+            请选择商品<br>
+            Please select products
+          </p>
+        `;
+      } else {
+        // Show selected items
+        let html = '<div style="font-family: \'Noto Sans SC\', sans-serif;">';
+    
+        items.forEach((item, index) => {
+          html += `
+            <div style="padding: 8px 0; border-bottom: 1px solid #fee2e2;">
+              <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
+                    ${index + 1}. ${item.name}
+                  </div>
+                  <div style="font-size: 13px; color: #666;">
+                    ${item.size}
+                  </div>
+                </div>
+                <div style="text-align: right; min-width: 120px;">
+                  <div style="color: #666; font-size: 13px;">
+                    ${item.quantity} × RM${item.price.toFixed(2)}
+                  </div>
+                  <div style="font-weight: 700; color: #dc2626; font-size: 15px;">
+                    RM${item.total.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+    
+        html += '</div>';
+        itemsContainer.innerHTML = html;
+      }
     }
     
     // Add event listeners to all quantity inputs
