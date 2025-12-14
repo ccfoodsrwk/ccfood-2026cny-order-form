@@ -787,8 +787,8 @@
           </div>
           
           <div class="form-group full-width">
-            <label class="chinese-font">送货地址 Delivery Address <span class="required">*</span></label>
-            <textarea id="customerAddress" rows="3" required></textarea>
+            <label class="chinese-font">送货地址 Delivery Address <span class="required" id="addressRequired">*</span></label>
+            <textarea id="customerAddress" rows="3" required placeholder="请输入送货地址或粘贴共享位置链接。&#10;Please enter the delivery address or paste the shared location URL here."></textarea>
           </div>
           
           <div class="form-group full-width">
@@ -921,6 +921,26 @@
     deliveryRadios.forEach(radio => {
       radio.addEventListener('change', calculateTotal);
     });
+
+    // Update address requirement based on delivery method
+    document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const addressField = document.getElementById('customerAddress');
+        const addressRequired = document.getElementById('addressRequired');
+    
+        if (this.value === 'self') {
+          // Self pickup - address optional
+          addressField.required = false;
+          addressField.placeholder = '自取无需填写地址（可选填）\nAddress optional for self-pickup';
+          if (addressRequired) addressRequired.style.display = 'none';
+        } else {
+          // Delivery - address required
+          addressField.required = true;
+          addressField.placeholder = '请输入送货地址或粘贴共享位置链接。\nPlease enter the delivery address or paste the shared location URL here.';
+          if (addressRequired) addressRequired.style.display = 'inline';
+        }
+      });
+    });
     
     // Show alert when PayNow is selected
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
@@ -953,10 +973,16 @@
         return;
       }
       
-      if (!address || address.length < 5) {
-        alert('请输入完整的地址，谢谢 ☺️\n地址应至少包含5个字符\n\nPlease enter a complete address, thank you ☺️\nAddress should be at least 5 characters');
-        document.getElementById('customerAddress').focus();
-        return;
+      // Get delivery method first
+      const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
+
+      // Only validate address if delivery is selected (not self-pickup)
+      if (deliveryMethod === 'delivery') {
+        if (!address || address.length < 5) {
+          alert('请输入完整的地址，谢谢 ☺️\n地址应至少包含5个字符\n\nPlease enter a complete address, thank you ☺️\nAddress should be at least 5 characters');
+          document.getElementById('customerAddress').focus();
+          return;
+        }
       }
       
       // Collect order items
@@ -980,7 +1006,6 @@
       }
       
       // Collect customer info
-      const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
       const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
       const notes = document.getElementById('customerNotes').value.trim();
       
@@ -1076,8 +1101,8 @@
 
       // Add thank you message ONLY for COD orders (PayNow gets it later after payment)
       if (paymentMethod === 'pay-later') {
-        message += `\n如需要协助，欢迎随时透过whatapps联络我们。n`;
-        message += `If you need any assistance, please contact us via WhatsApp.;
+        message += `\n如需要协助，欢迎随时透过whatapps联络我们。\n`;
+        message += `If you need any assistance, please contact us via WhatsApp.\n;
       }
       
       // Show friendly message before opening WhatsApp
