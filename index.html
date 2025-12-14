@@ -1249,7 +1249,20 @@
     
     // Initialize
     calculateTotal();
-	
+
+	// Initialize address requirement based on default delivery method
+    const defaultDeliveryMethod = document.querySelector('input[name="delivery"]:checked');
+    if (defaultDeliveryMethod) {
+      const addressField = document.getElementById('customerAddress');
+      const addressRequired = document.getElementById('addressRequired');
+  
+      if (defaultDeliveryMethod.value === 'self') {
+        // Self pickup is default - make address optional
+        addressField.required = false;
+        addressField.placeholder = '自取无需填写地址（可选填）\nAddress optional for self-pickup';
+        if (addressRequired) addressRequired.style.display = 'none';
+      }
+    }
   }); // Close DOMContentLoaded event listener	
   </script>
 </body>
